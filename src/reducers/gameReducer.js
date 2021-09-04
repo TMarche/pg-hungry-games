@@ -1,9 +1,10 @@
-import {Map} from "immutable";
+import {OrderedMap} from "immutable";
 
-import { SET_TRUE, SET_FALSE } from "../actions/types";
+import { SET_TRUE, SET_FALSE, ADD_CHARACTER, REMOVE_CHARACTER } from "../actions/types";
 
-const INITIAL_STATE = Map({
+const INITIAL_STATE = OrderedMap({
     truthiness: null,
+    characters: OrderedMap(),
 })
 
 const gameReducer = (state = INITIAL_STATE, action) => {
@@ -12,6 +13,10 @@ const gameReducer = (state = INITIAL_STATE, action) => {
             return state.set("truthiness", "true")
         case SET_FALSE:
             return state.set("truthiness", "false")
+        case ADD_CHARACTER:
+            return state.setIn(["characters", action.payload.id], action.payload)
+        case REMOVE_CHARACTER:
+            return state.removeIn(["characters", action.payload.id])
         default:
             return state;
     }

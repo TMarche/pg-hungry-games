@@ -1,20 +1,19 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
-import React, {useState} from "react";
+import React from "react";
 import { Form, Field } from "react-final-form";
-import { uniqueNamesGenerator, Config, names } from "unique-names-generator";
+import {connect} from 'react-redux'
+import { v4 as uuid } from 'uuid';
+
 import faker from "faker";
+import { getCharacters } from "../selectors";
+import { addCharacter, removeCharacter } from "../actions";
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+import Header from "./Header"
+import Button from "./Button"
+import Character from "./Character"
+import { FlexRow, Container} from "./layout";
 
-const onSubmit = async (values) => {
-  await sleep(300);
-  window.alert(JSON.stringify(values, 0, 2));
-};
-
-const newOnSubmit = (values, current, setter) => {
-    setter([...current, values.name])
-}
-
+import "../styles/styles.css"
 
 class App extends React.Component {
     constructor(props) {
@@ -26,7 +25,8 @@ class App extends React.Component {
 
     render() {
         return (
-            <div>
+            <Container background="#333" margin="0" color="white">
+                <Header />
                 <Form
                     onSubmit={this.onSubmit}
                     render={({ handleSubmit, form, submitting, pristine, values }) => (
@@ -34,39 +34,41 @@ class App extends React.Component {
                         handleSubmit(event);
                         form.reset();
                     }}>
-                        <div>
-                        <label>Name</label>
-                        <Field
-                            name="name"
-                            component="input"
-                            type="text"
-                            placeholder="Name"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => this.generateRandomName(form)}
-                        >
-                            Generate Random Name
-                        </button>
-                        </div>
-                        <div>
-                            <button type="submit" disabled={submitting || pristine}>
+                        <FlexRow>
+                            <label>Name</label>
+                            <Field
+                                name="name"
+                                component="input"
+                                type="text"
+                                placeholder="Name"
+                            />
+                            <Button
+                                type="button"
+                                onClick={() => this.generateRandomName(form)}
+                            >
+                                Generate Random Name
+                            </Button>
+                        </FlexRow>
+                        <FlexRow>
+                            <Button type="submit" disabled={submitting || pristine}>
                                 Submit
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                delete={true}
                                 type="button"
                                 onClick={form.reset}
                                 disabled={submitting || pristine}
                             >
                                 Reset
-                            </button>
-                        </div>
-                        <pre>{JSON.stringify(values, 0, 2)}</pre>
+                            </Button>
+                        </FlexRow>
                     </form>
                     )}
                 />
-                {this.state.names.map( x => <div>{x}</div>)}
-            </div>
+                <Container width="300px" margin="0" padding="0" background="#111">
+                    {this.props.characters.valueSeq().map( (x) => <Character key={x.id} character={x} />).toArray()}
+                </Container>
+            </Container>
         )
     }
 
@@ -75,7 +77,7 @@ class App extends React.Component {
     }
 
     onSubmit = (values) => {
-        this.addName(values.name)
+        this.props.addCharacter(values.name, uuid() )
     }
 
     addName = (name) => {
@@ -85,4 +87,15 @@ class App extends React.Component {
     }
 }
 
-export default App
+const mapStateToProps = (state) => {
+    return {
+        characters: getCharacters(state)
+    }
+}
+
+const mapDispatchToProps = {
+    addCharacter,
+    removeCharacter,
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)
